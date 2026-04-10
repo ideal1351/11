@@ -1,0 +1,62 @@
+name: Docker Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Go image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./go-service
+        file: ./go-service/Dockerfile
+        load: true
+        tags: go-service:test
+    
+    - name: Build Python image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./python-service
+        file: ./python-service/Dockerfile
+        load: true
+        tags: python-service:test
+    
+    - name: Build Rust image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./rust-service
+        file: ./rust-service/Dockerfile.musl
+        load: true
+        tags: rust-service:test
+    
+    - name: Test Go image
+      run: |
+        docker run --rm go-service:test &
+        sleep 2
+        curl --fail http://localhost:8080/ping
+        docker stop $(docker ps -q)
+    
+    - name: Test Python image
+      run: |
+        docker run --rm -p 8000:8000 python-service:test &
+        sleep 5
+        curl --fail http://localhost:8000/fast/ping
+        docker stop $(docker ps -q)
+    
+    - name: Test Rust image
+      run: |
+        docker run --rm -p 8082:8082 rust-service:test &
+        sleep 2
+        curl --fail http://localhost:8082/health
+        docker stop $(docker ps -q)
