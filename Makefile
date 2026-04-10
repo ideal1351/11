@@ -31,3 +31,15 @@ up:
 
 down:
 	docker-compose down
+
+# Проверка мультиплатформенных образов
+inspect:
+	@echo "Информация о мультиплатформенных образах:"
+	@echo "Go:"
+	@docker buildx imagetools inspect ideal1351/go-service:latest 2>/dev/null || echo "  Образ не найден в registry"
+	@echo ""
+	@echo "Python:"
+	@docker buildx imagetools inspect ideal1351/python-service:latest 2>/dev/null || echo "  Образ не найден в registry"
+	@echo ""
+	@echo "Rust:"
+	@docker buildx imagetools inspect ideal1351/rust-service:latest 2>/dev/null || echo "  Образ не найден в registry"
