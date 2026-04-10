@@ -85,3 +85,17 @@ docker exec go-service ping python-service
 ✅ Код разбит на модули
 
 ✅ Все изменения закоммичены в Git
+1. ✅ **PROMPT_LOG.md** – добавлен файл с описанием процесса разработки
+2. ✅ **Rust-сервис** – добавлен в docker-compose.yml
+3. ✅ **Сравнение размеров** – добавлен Rust образ в скрипт
+4. ✅ **Тесты** – добавлены базовые unit-тесты для Go и Python
+5. ✅ **CI/CD** – добавлен GitHub Actions workflow
+
+## Запуск тестов
+
+```bash
+# Go тесты
+cd go-service && go test -v
+
+# Python тесты
+cd python-service && pytest -v
