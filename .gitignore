@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Go
+*.exe
+*.test
+go-service/go-service
+
+# Rust
+target/
+*.rs.bk
+Cargo.lock
+
+# Docker
+*.log
+docker-compose.override.yml
