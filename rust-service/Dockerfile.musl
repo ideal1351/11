@@ -1,0 +1,33 @@
+# Этап 1: сборка с musl
+FROM rust:1.75-alpine AS builder
+
+# Устанавливаем musl и инструменты
+RUN apk add --no-cache musl-dev
+
+WORKDIR /app
+
+# Копируем Cargo.toml
+COPY Cargo.toml .
+
+# Создаём пустой проект для кэширования зависимостей
+RUN mkdir src && echo "fn main() {}" > src/main.rs
+RUN cargo build --release --target=x86_64-unknown-linux-musl
+RUN rm -rf src
+
+# Копируем исходный код
+COPY src ./src
+
+# Собираем статический бинарный файл
+RUN cargo build --release --target=x86_64-unknown-linux-musl
+
+# Этап 2: финальный образ из scratch
+FROM scratch
+
+WORKDIR /app
+
+# Копируем статический бинарный файл
+COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/rust-service /rust-service
+
+EXPOSE 8082
+
+CMD ["/rust-service"]
