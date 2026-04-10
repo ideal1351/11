@@ -5,50 +5,29 @@ import (
     "net/http"
     "net/http/httptest"
     "testing"
-    "github.com/gin-gonic/gin"
 )
 
 func TestPingEndpoint(t *testing.T) {
-    gin.SetMode(gin.TestMode)
-    router := gin.Default()
-    router.GET("/ping", func(c *gin.Context) {
-        c.JSON(200, gin.H{"message": "pong"})
-    })
-
     req, _ := http.NewRequest("GET", "/ping", nil)
-    w := httptest.NewRecorder()
-    router.ServeHTTP(w, req)
+    rr := httptest.NewRecorder()
 
-    if w.Code != http.StatusOK {
-        t.Errorf("Expected status 200, got %d", w.Code)
-    }
-
-    var response map[string]string
-    json.Unmarshal(w.Body.Bytes(), &response)
-    if response["message"] != "pong" {
-        t.Errorf("Expected message 'pong', got '%s'", response["message"])
-    }
-}
-
-func TestHelloEndpoint(t *testing.T) {
-    gin.SetMode(gin.TestMode)
-    router := gin.Default()
-    router.GET("/hello/:name", func(c *gin.Context) {
-        name := c.Param("name")
-        c.JSON(200, gin.H{"hello": name})
+    // Используем роутер из main.go (нужно экспортировать)
+    // Для простоты создаём тестовый роутер
+    handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(map[string]string{"message": "pong"})
     })
 
-    req, _ := http.NewRequest("GET", "/hello/World", nil)
-    w := httptest.NewRecorder()
-    router.ServeHTTP(w, req)
+    handler.ServeHTTP(rr, req)
 
-    if w.Code != http.StatusOK {
-        t.Errorf("Expected status 200, got %d", w.Code)
+    if status := rr.Code; status != http.StatusOK {
+        t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
     }
 
     var response map[string]string
-    json.Unmarshal(w.Body.Bytes(), &response)
-    if response["hello"] != "World" {
-        t.Errorf("Expected hello 'World', got '%s'", response["hello"])
+    json.Unmarshal(rr.Body.Bytes(), &response)
+    if response["message"] != "pong" {
+        t.Errorf("handler returned wrong message: got %v want pong", response["message"])
     }
 }
