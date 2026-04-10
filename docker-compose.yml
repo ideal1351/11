@@ -1,0 +1,44 @@
+version: '3.8'
+
+# Определяем сети
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+services:
+  # Go сервис
+  go-service:
+    build:
+      context: ./go-service
+      dockerfile: Dockerfile
+    container_name: go-service
+    ports:
+      - "8080:8080"
+    networks:
+      app-network:
+        ipv4_address: 172.20.0.10
+    restart: unless-stopped
+
+  # Python сервис
+  python-service:
+    build:
+      context: ./python-service
+      dockerfile: Dockerfile
+    container_name: python-service
+    ports:
+      - "8000:8000"
+    networks:
+      app-network:
+        ipv4_address: 172.20.0.20
+    depends_on:
+      - go-service
+    environment:
+      - GO_SERVICE_URL=http://go-service:8080
+    restart: unless-stopped
+
+# Проверка сети:
+# docker exec python-service ping go-service
+# docker exec go-service ping python-service
